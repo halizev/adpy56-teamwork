@@ -2,8 +2,8 @@ CREATE TABLE IF NOT EXISTS user_vk (
     id INTEGER PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     age INTEGER NOT NULL,
-    gender VARCHAR(6) NOT NULL,
-    city VARCHAR(50) NOT NULL
+    gender INTEGER NOT NULL,
+    city INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS candidate (
