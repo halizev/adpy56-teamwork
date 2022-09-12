@@ -1,22 +1,23 @@
-CREATE TABLE IF NOT EXISTS user_vk (
+CREATE TABLE IF NOT EXISTS client (
     id INTEGER PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    age INTEGER NOT NULL,
-    gender INTEGER NOT NULL,
-    city INTEGER NOT NULL
+    first_name VARCHAR(50) NOT NULL,
+	last_name VARCHAR(50),    
+    sex INTEGER NOT NULL,
+	bdate DATE NOT NULL,
+    city_id INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS candidate (
     id INTEGER PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    surname VARCHAR(50) NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
     profile_link VARCHAR NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS user_vk_candidate (
-    user_vk_id INTEGER REFERENCES user_vk(id),
+CREATE TABLE IF NOT EXISTS client_candidate (
+    client_id INTEGER REFERENCES client(id),
     candidate_id INTEGER REFERENCES candidate(id),
-    CONSTRAINT uc PRIMARY KEY (user_vk_id, candidate_id),
+    CONSTRAINT clc PRIMARY KEY (client_id, candidate_id),
     favourite boolean,
     has_seen boolean   
 );
