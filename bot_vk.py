@@ -46,7 +46,7 @@ if __name__ == '__main__':
         except KeyError:
             write_msg(user_id, 'Ошибка получения токена, введите токен в переменную - user_token')
 
-    def find_user_candidates(user_id):
+    def search_user_candidates(user_id):
         url = f'https://api.vk.com/method/users.search'
         user_info_array = dating_db.get_user_info(user_id)
 
@@ -104,8 +104,11 @@ if __name__ == '__main__':
                         db.add_user(event.user_id, 'Люда', 40, 'female', 'Kaluga')                
                 elif user_request == "поиск":
                     write_msg(event.user_id, f"Начинаю поиск для {event.user_id}")
+
                     # тут функция поиска кадидатов(передаём инфо о пользователе из бд,
+                    search_user_candidates(user_id)
                     # получаем файл json(имя, фамилия, ссылка на профиль, три ссылки на фото))
+                    # Здесь будет вывод пользователей
                     # до написания функции временно набросаю список:
                     user_candidate_list = [
                         {'user_id':2089706, 'candidate_id':3, 'name':'Jon', 'surname':'Bidon', 'profile_link':'pr_link1', 'attachments':['photo1','photo2','photo3'], 'favourite':False, 'has_seen':False},
