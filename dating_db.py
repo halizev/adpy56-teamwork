@@ -13,7 +13,7 @@ class DatingDB:
         self.cur = self.conn.cursor()
     
     # проверка наличия записи в таблице client 
-    def check_client_id(self, id):
+    def check_user_id(self, id):
         self.cur.execute("""
         SELECT EXISTS (SELECT first_name FROM client WHERE id=%s)
         """, (id,))
@@ -29,16 +29,16 @@ class DatingDB:
         return  check_id[0]
 
     # проверка наличия записи в таблице client_candidate
-    def check_client_candidate_id(self, client_id, candidate_id):
+    def check_user_candidate_id(self, user_id, candidate_id):
         self.cur.execute("""
         SELECT EXISTS (SELECT client_id FROM client_candidate 
                         WHERE client_id=%s AND candidate_id=%s);
-        """, (client_id, candidate_id))
+        """, (user_id, candidate_id))
         check_id = self.cur.fetchone()
         return  check_id[0]
 
     # добавление записи в таблицу client
-    def add_client(self, id, first_name, last_name, sex, bdate, city_id):              
+    def add_user(self, id, first_name, last_name, sex, bdate, city_id):              
         self.cur.execute("""
         INSERT INTO client(id, first_name, last_name, sex, bdate, city_id) VALUES (%s, %s, %s, %s, %s, %s);            
         """, (id, first_name, last_name, sex, bdate, city_id))        
@@ -48,7 +48,7 @@ class DatingDB:
     # добавление записи в таблицу candidate
     def add_candidate(self, id, first_name, last_name, profile):        
         self.cur.execute("""
-        INSERT INTO candidate(id, name, surname, profile_link) VALUES (%s, %s, %s, %s);
+        INSERT INTO candidate(id, first_name, last_name, profile_link) VALUES (%s, %s, %s, %s);
         """, (id, first_name, last_name, profile))        
         self.conn.commit()                        
         return 
@@ -63,15 +63,15 @@ class DatingDB:
         return 
 
     # добавление записи в таблицу client_candidate
-    def add_client_candidate(self, client_id, candidate_id, favourite=False, has_seen=False):
+    def add_user_candidate(self, user_id, candidate_id, favourite=False, has_seen=False):
         self.cur.execute("""
         INSERT INTO client_candidate(client_id, candidate_id, favourite, has_seen) VALUES (%s, %s, %s, %s)        
-        """, (client_id, candidate_id, favourite, has_seen))        
+        """, (user_id, candidate_id, favourite, has_seen))        
         self.conn.commit()        
         return 
     
     # получение инфо(для критериев поиска) 
-    def get_client_info(self, user_id):
+    def get_user_info(self, user_id):
         self.cur.execute("""
         SELECT id, first_name, last_name, sex, bdate, city_id FROM client;            
         """, (user_id,))
