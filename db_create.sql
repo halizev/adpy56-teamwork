@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS client (
     first_name VARCHAR(50) NOT NULL,
 	last_name VARCHAR(50),    
     sex INTEGER NOT NULL,
-	bdate DATE NOT NULL,
+	bdate VARCHAR(10) NOT NULL,
     city_id INTEGER NOT NULL
 );
 
