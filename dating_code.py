@@ -44,7 +44,7 @@ def search_user_candidates(user_id):
         user_age = user_age - 1
 
     params = {'access_token': bot_vk.token_user,
-              '': user_id
+              '': user_id,
               'v': '5.131',
               'sex': user_sex,
               'age': user_age,
@@ -81,7 +81,7 @@ def get_candidate_photos(candidate_id):
               'count': 10,
               'extended': 1}
 
-    photos_list = dict()
+    photos_list = list()
     try:
         repl = requests.get(url, params=params)
         response = repl.json()
@@ -89,6 +89,7 @@ def get_candidate_photos(candidate_id):
             photo_link = photo['sizes'][-1]['url']
             photo_likes = photo['likes']['count']
             photos_list.append({'photo_link': photo_link, 'photo_likes': photo_likes})
+        dating_db.add_photo(candidate_id, photos_list)
     except KeyError:
         print('Ошибка обращения к API')
-    return candidate_id, photos_list
+
