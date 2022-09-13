@@ -1,12 +1,10 @@
-from random import randrange
-
-import dating_db
-from dating_db import DatingDB
 import configparser
-import requests
 import vk_api
-import datetime
+import dating_code
+from random import randrange
+from dating_db import DatingDB
 from vk_api.longpoll import VkLongPoll, VkEventType
+
 
 if __name__ == '__main__':
     config = configparser.ConfigParser()
@@ -25,88 +23,23 @@ if __name__ == '__main__':
     def write_msg(user_id, message):
         vk.method('messages.send', {'user_id': user_id, 'message': message,  'random_id': randrange(10 ** 7),})
 
-    def get_user_info(user_id):
-        url = f'https://api.vk.com/method/users.get'
-        params = {'access_token': token_group,
-                  'user_ids': user_id,
-                  'fields': 'name, sex, city, bdate',
-                  'v': '5.131'}
-        repl = requests.get(url, params=params)
-        response = repl.json()
-        try:
-            information_dict = response['response']
-            for info in information_dict:
-                user_first_name = info['first_name']
-                user_last_name = info['last_name']
-                user_sex = info['sex']
-                user_city_id = info['city']['id']
-                user_bdate = datetime.strptime(info['bdate'], "%d.%m.%Y")
-
-                return [user_id, user_first_name, user_last_name, user_bdate, user_sex, user_city_id]
-        except KeyError:
-            write_msg(user_id, 'Ошибка получения токена, введите токен в переменную - user_token')
-
-    def search_user_candidates(user_id):
-        url = f'https://api.vk.com/method/users.search'
-        user_info_array = dating_db.get_user_info(user_id)
-
-        user_sex = 0
-        if user_info_array[0] == 1:
-            user_sex = 2
-        elif user_info_array[0] == 2:
-            user_sex = 1
-
-        birthday = user_info_array[0].date()
-        today = datetime.date.today()
-        user_age = today.year - birthday.year
-        if (today.month < birthday.month or
-                (today.month == birthday.month and today.day < birthday.day)):
-            user_age = user_age - 1
-
-        params = {'access_token': token_user,
-                  'v': '5.131',
-                  'sex': user_sex,
-                  'age': user_age,
-                  'city': user_info_array[2],
-                  'fields': 'is_closed, id, first_name, last_name',
-                  'status': '1' or '6',
-                  'has_photo': '1',
-                  'count': 100}
-        repl = requests.get(url, params=params)
-        response = repl.json()
-
-        try:
-            candidates_info = response['items']
-            for person_dict in candidates_info:
-                if person_dict['is_closed'] == False:
-                    candidate_first_name = person_dict['first_name']
-                    candidate_last_name = person_dict['last_name']
-                    candidate_id = str(person_dict['id'])
-                    candidate_link = 'vk.com/id' + str(person_dict['id'])
-                    dating_db.add_candidate(candidate_id, candidate_first_name, candidate_last_name, candidate_link)
-                else:
-                    continue
-            return f'Поиск завершён'
-        except KeyError:
-            write_msg(user_id, 'Ошибка получения токена')
 
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW:
             if event.to_me:
                 user_request = str(event.text.lower())
                 user_id = str(event.user_id)
-
                 if user_request == "начать":
                     write_msg(event.user_id, f"Хай, {user_id}")
-                    get_user_info(user_id)
                     if not db.check_user_id(event.user_id):
-                        # тут будет функция получения из вк информации(возраст, пол, город) о пользователе для записи в бд 
+                        # тут будет функция получения из вк информации(возраст, пол, город) о пользователе для записи в бд
+                        dating_code.get_user_info(user_id)
                         db.add_user(event.user_id, 'Люда', 40, 'female', 'Kaluga')                
                 elif user_request == "поиск":
                     write_msg(event.user_id, f"Начинаю поиск для {event.user_id}")
-
                     # тут функция поиска кадидатов(передаём инфо о пользователе из бд,
-                    search_user_candidates(user_id)
+                    dating_code.search_user_candidates(user_id)
+                    dating_code.get_candidate_photos()
                     # получаем файл json(имя, фамилия, ссылка на профиль, три ссылки на фото))
                     # Здесь будет вывод пользователей
                     # до написания функции временно набросаю список:
