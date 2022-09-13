@@ -75,7 +75,8 @@ class DatingDB:
         self.cur.execute("""
         SELECT id, first_name, last_name, sex, bdate, city_id FROM client;            
         """, (user_id,))
-        return self.cur.fetchall()
+        info = self.cur.fetchall()[0]
+        return {'id': info[0], 'first_name': info[1], 'last_name': info[2], 'sex': info[3], 'bdate': info[4], 'city_id': info[5]}
 
     # получение списка кандидатов для отображения пользователю
     def get_candidates(self, user_id):
