@@ -1,12 +1,12 @@
 import requests
 import dating_db
 import datetime
-import bot_vk
 
 
-def get_user_info(user_id):
+
+def get_user_info(user_id, token_group):
     url = f'https://api.vk.com/method/users.get'
-    params = {'access_token': bot_vk.token_group,
+    params = {'access_token': token_group,
               'user_ids': user_id,
               'fields': 'name, sex, city, bdate',
               'v': '5.131'}
@@ -23,10 +23,10 @@ def get_user_info(user_id):
 
             return [user_id, user_first_name, user_last_name, user_bdate, user_sex, user_city_id]
     except KeyError:
-        print('Ошибка обращения к API')
+        print('get_user_info. Ошибка обращения к API')
 
 
-def search_user_candidates(user_id):
+def search_user_candidates(user_id, token_user):
     url = f'https://api.vk.com/method/users.search'
     user_info_array = dating_db.get_user_info(user_id)
 
@@ -43,7 +43,7 @@ def search_user_candidates(user_id):
             (today.month == birthday.month and today.day < birthday.day)):
         user_age = user_age - 1
 
-    params = {'access_token': bot_vk.token_user,
+    params = {'access_token': token_user,
               '': user_id,
               'v': '5.131',
               'sex': user_sex,
@@ -65,16 +65,17 @@ def search_user_candidates(user_id):
                 candidate_id = str(person_dict['id'])
                 candidate_link = 'vk.com/id' + str(person_dict['id'])
                 dating_db.add_candidate(candidate_id, candidate_first_name, candidate_last_name, candidate_link)
+                get_candidate_photos(candidate_id, token_user)
             else:
                 continue
         return f'Поиск завершён'
     except KeyError:
-        print('Ошибка обращения к API')
+        print('search_user_candidates. Ошибка обращения к API')
 
 
-def get_candidate_photos(candidate_id):
+def get_candidate_photos(candidate_id, token_user):
     url = f'https://api.vk.com/method/photos.get'
-    params = {'access_token': bot_vk.token_user,
+    params = {'access_token': token_user,
               'owner_id': candidate_id,
               'v': '5.131',
               'album_id': 'profile',
@@ -92,5 +93,5 @@ def get_candidate_photos(candidate_id):
         sorted(photos_list, key=lambda i: i['likes'], reverse=True)
         dating_db.add_photo(candidate_id, photos_list[0:3])
     except KeyError:
-        print('Ошибка обращения к API')
+        print('get_candidate_photos. Ошибка обращения к API')
 

@@ -32,14 +32,14 @@ if __name__ == '__main__':
                 if user_request == "начать":
                     write_msg(event.user_id, f"Хай, {user_id}")
                     if not db.check_user_id(event.user_id):
-                        # тут будет функция получения из вк информации(возраст, пол, город) о пользователе для записи в бд
-                        dating_code.get_user_info(user_id)
-                        db.add_user(event.user_id, 'Люда', 40, 'female', 'Kaluga')                
+                        # Получить данные пользователя и добавить в базу
+                        dating_code.get_user_info(user_id, token_group)
+                        # db.add_user(event.user_id, 'Люда', 40, 'female', 'Kaluga')
                 elif user_request == "поиск":
                     write_msg(event.user_id, f"Начинаю поиск для {event.user_id}")
-                    # тут функция поиска кадидатов(передаём инфо о пользователе из бд,
-                    dating_code.search_user_candidates(user_id)
-                    dating_code.get_candidate_photos()
+                    # Поиск кандидатов
+                    dating_code.search_user_candidates(user_id, token_user)
+
                     # получаем файл json(имя, фамилия, ссылка на профиль, три ссылки на фото))
                     # Здесь будет вывод пользователей
                     # до написания функции временно набросаю список:
