@@ -19,7 +19,7 @@ def get_user_info(user_id):
             user_last_name = info['last_name']
             user_sex = info['sex']
             user_city_id = info['city']['id']
-            user_bdate = datetime.strptime(info['bdate'], "%d.%m.%Y")
+            user_bdate = str(info['bdate'])
 
             return [user_id, user_first_name, user_last_name, user_bdate, user_sex, user_city_id]
     except KeyError:
@@ -89,7 +89,8 @@ def get_candidate_photos(candidate_id):
             photo_link = photo['sizes'][-1]['url']
             photo_likes = photo['likes']['count']
             photos_list.append({'photo_link': photo_link, 'photo_likes': photo_likes})
-        dating_db.add_photo(candidate_id, photos_list)
+        sorted(photos_list, key=lambda i: i['likes'])
+        dating_db.add_photo(candidate_id, photos_list[0:3])
     except KeyError:
         print('Ошибка обращения к API')
 
