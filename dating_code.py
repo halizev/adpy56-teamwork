@@ -89,7 +89,7 @@ def get_candidate_photos(candidate_id):
             photo_link = photo['sizes'][-1]['url']
             photo_likes = photo['likes']['count']
             photos_list.append({'photo_link': photo_link, 'photo_likes': photo_likes})
-        sorted(photos_list, key=lambda i: i['likes'])
+        sorted(photos_list, key=lambda i: i['likes'], reverse=True)
         dating_db.add_photo(candidate_id, photos_list[0:3])
     except KeyError:
         print('Ошибка обращения к API')
