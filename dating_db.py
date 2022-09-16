@@ -55,10 +55,10 @@ class DatingDB:
 
     # добавление записи в таблицу photo
     def add_photo(self, candidate_id, photo_list):
-        for photo_link in photo_list:
+        for photo_id in photo_list:
             self.cur.execute("""
-            INSERT INTO photo(candidate_id, photo_link) VALUES (%s, %s); 
-            """, (candidate_id, photo_link))              
+            INSERT INTO photo(candidate_id, id) VALUES (%s, %s); 
+            """, (candidate_id, photo_id))              
         self.conn.commit()        
         return 
 
@@ -73,19 +73,34 @@ class DatingDB:
     # получение инфо(для критериев поиска) 
     def get_user_info(self, user_id):
         self.cur.execute("""
-        SELECT id, first_name, last_name, sex, bdate, city_id FROM client;            
+        SELECT id, sex, bdate, city_id FROM client;            
         """, (user_id,))
         info = self.cur.fetchall()[0]
-        return {'id': info[0], 'first_name': info[1], 'last_name': info[2], 'sex': info[3], 'bdate': info[4], 'city_id': info[5]}
+        if len(info) > 0:
+            return {'id': info[0], 'sex': info[1], 'bdate': info[2], 'city_id': info[3]}
+        else:
+            return None
 
     # получение списка кандидатов для отображения пользователю
     def get_candidates(self, user_id):
         self.cur.execute("""
-        SELECT c.id, c.first_name, c.last_name, c.profile_link FROM candidate c
+        SELECT c.id, c.first_name, c.last_name, c.profile_link, clc.favourite, clc.has_seen FROM candidate c        
         JOIN client_candidate clc ON c.id = clc.candidate_id
         WHERE clc.client_id = %s;          
         """, (user_id,))
-        return self.cur.fetchall()       
+        return self.cur.fetchall() 
+    
+    # получение списка кандидатов для отображения пользователю
+    def get_photos(self, candidate_id):
+        self.cur.execute("""
+        SELECT * FROM photo
+        WHERE candidate_id = %s;          
+        """, (candidate_id,))
+        info = self.cur.fetchall()
+        if len(info) > 0:
+            return info
+        else:
+            return None
 
     # отметить в избранное
     def mark_favourite(self, user_id, candidate_id, favourite=None):

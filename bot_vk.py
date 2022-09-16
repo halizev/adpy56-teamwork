@@ -1,12 +1,10 @@
 from random import randrange
-
-import dating_db
+from dating_code import get_user_info, search_user_candidates, get_candidate_photos
 from dating_db import DatingDB
 import configparser
-import requests
 import vk_api
-import datetime
 from vk_api.longpoll import VkLongPoll, VkEventType
+from pprint import pprint
 
 if __name__ == '__main__':
     config = configparser.ConfigParser()
@@ -22,125 +20,73 @@ if __name__ == '__main__':
     db = DatingDB(name_db, user, password)
     db.connect_db()
 
-    def write_msg(user_id, message):
-        vk.method('messages.send', {'user_id': user_id, 'message': message,  'random_id': randrange(10 ** 7),})
+    def write_msg(user_id, message, attachment=None):
+       return vk.method('messages.send', {'user_id': user_id, 'message': message,  'attachment': attachment, 'random_id': randrange(10 ** 7),})
 
-    def get_user_info(user_id):
-        url = f'https://api.vk.com/method/users.get'
-        params = {'access_token': token_group,
-                  'user_ids': user_id,
-                  'fields': 'name, sex, city, bdate',
-                  'v': '5.131'}
-        repl = requests.get(url, params=params)
-        response = repl.json()
-        try:
-            information_dict = response['response']
-            for info in information_dict:
-                user_first_name = info['first_name']
-                user_last_name = info['last_name']
-                user_sex = info['sex']
-                user_city_id = info['city']['id']
-                user_bdate = datetime.strptime(info['bdate'], "%d.%m.%Y")
-
-                return [user_id, user_first_name, user_last_name, user_bdate, user_sex, user_city_id]
-        except KeyError:
-            write_msg(user_id, 'Ошибка получения токена, введите токен в переменную - user_token')
-
-    def search_user_candidates(user_id):
-        url = f'https://api.vk.com/method/users.search'
-        user_info_array = dating_db.get_user_info(user_id)
-
-        user_sex = 0
-        if user_info_array[0] == 1:
-            user_sex = 2
-        elif user_info_array[0] == 2:
-            user_sex = 1
-
-        birthday = user_info_array[0].date()
-        today = datetime.date.today()
-        user_age = today.year - birthday.year
-        if (today.month < birthday.month or
-                (today.month == birthday.month and today.day < birthday.day)):
-            user_age = user_age - 1
-
-        params = {'access_token': token_user,
-                  'v': '5.131',
-                  'sex': user_sex,
-                  'age': user_age,
-                  'city': user_info_array[2],
-                  'fields': 'is_closed, id, first_name, last_name',
-                  'status': '1' or '6',
-                  'has_photo': '1',
-                  'count': 100}
-        repl = requests.get(url, params=params)
-        response = repl.json()
-
-        try:
-            candidates_info = response['items']
-            for person_dict in candidates_info:
-                if person_dict['is_closed'] == False:
-                    candidate_first_name = person_dict['first_name']
-                    candidate_last_name = person_dict['last_name']
-                    candidate_id = str(person_dict['id'])
-                    candidate_link = 'vk.com/id' + str(person_dict['id'])
-                    dating_db.add_candidate(candidate_id, candidate_first_name, candidate_last_name, candidate_link)
-                else:
-                    continue
-            return f'Поиск завершён'
-        except KeyError:
-            write_msg(user_id, 'Ошибка получения токена')
-
+    
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW:
             if event.to_me:
                 user_request = str(event.text.lower())
-                user_id = str(event.user_id)
+                # user_id = str(event.user_id)
 
-                if user_request == "начать":
-                    write_msg(event.user_id, f"Хай, {user_id}")
-                    get_user_info(user_id)
+                if user_request == "начать": # переделать механизм на кнопку                 
+                    user_info = get_user_info(event.user_id, token_group)
+                    
+                    write_msg(event.user_id, f"Хай, {event.user_id}")
                     if not db.check_user_id(event.user_id):
-                        # тут будет функция получения из вк информации(возраст, пол, город) о пользователе для записи в бд 
-                        db.add_user(event.user_id, 'Люда', 40, 'female', 'Kaluga')                
-                elif user_request == "поиск":
-                    write_msg(event.user_id, f"Начинаю поиск для {event.user_id}")
-
-                    # тут функция поиска кадидатов(передаём инфо о пользователе из бд,
-                    search_user_candidates(user_id)
-                    # получаем файл json(имя, фамилия, ссылка на профиль, три ссылки на фото))
-                    # Здесь будет вывод пользователей
-                    # до написания функции временно набросаю список:
-                    user_candidate_list = [
-                        {'user_id':2089706, 'candidate_id':3, 'name':'Jon', 'surname':'Bidon', 'profile_link':'pr_link1', 'attachments':['photo1','photo2','photo3'], 'favourite':False, 'has_seen':False},
-                    {'user_id':2089706, 'candidate_id':4, 'name':'Ion', 'surname':'Suruchianu', 'profile_link':'pr_link2', 'attachments':['photo1','photo2','photo3'], 'favourite':False, 'has_seen':False},
-                    {'user_id':2089706, 'candidate_id':5, 'name':'Sofia', 'surname':'Rotaru', 'profile_link':'pr_link3', 'attachments':['photo1','photo2','photo3'], 'favourite':False, 'has_seen':False}
-                    ]
+                        db.add_user(*user_info)                
+                elif user_request == "поиск": # переделать механизм на кнопку                   
+                    write_msg(event.user_id, f"Начинаю поиск людей противоположного пола для знакомства в вашем городе.")
+                    user_info = db.get_user_info(event.user_id)
+                    print(user_info)                  
+                    candidates_to_db = search_user_candidates(token_user, user_info['id'], user_info['bdate'], user_info['sex'], user_info['city_id'])
+                                                             
                     # если в базе нет кадидата, то создаём запись
-                    for candidate in user_candidate_list:
-                        if not db.check_candidate_id(candidate['candidate_id']): 
-                            db.add_candidate(candidate['candidate_id'], candidate['name'], candidate['surname'], candidate['profile_link'])
-                            db.add_photo(candidate['candidate_id'], candidate['attachments']) # после готового кода взаимодействия с вк тут будут данные из json
-                        if not db.check_user_vk_candidate_id(event.user_id, candidate['candidate_id']):
-                            db.add_user_vk_candidate(candidate['user_id'], candidate['candidate_id'], candidate['favourite'], candidate['has_seen']) # после готового кода взаимодействия с вк тут будут данные из json
-                    # сохраняем данные о кандидатах в список для отображения пользователю
-                    candidates_list = db.get_candidates(event.user_id)
-                    # тут будет функция write_msg("следующий", "в избранное"), 
-                    # которая отображает пользователю данные о подходящих
-                    # кандидатах по одному, на интерфейсе в чате с ботом будут кнопки
-                    # "следующий", "в избранное"
-                # после нажатия на кнопку вперёд помечаем флаг has_seen
-                elif user_request == "следующий": # переделать механизм на кнопку
-                    write_msg(event.user_id, "Предыдущий промаркирован has_seen") 
-                    db.mark_has_seen(event.user_id, candidate_id=3, has_seen=True)
+                    for candidate in candidates_to_db:
+                        if not db.check_candidate_id(candidate['id']): 
+                            db.add_candidate(**candidate)
+                            photos = get_candidate_photos(candidate['id'], token_user)
+                            db.add_photo(photos['candidate_id'], photos['list_photo_ids'])
+                        if not db.check_user_candidate_id(user_info['id'], candidate['id']):
+                            db.add_user_candidate(user_info['id'], candidate['id'], favourite=False, has_seen=False)
+                    # выводим данные о кандидатах
+                    x = 0
+                    candidates_to_show = [candidate for candidate in db.get_candidates(event.user_id)]
+                    photos_to_show = db.get_photos(candidates_to_show[x][0])
+                    if photos_to_show is not None:
+                        att = f'photo{candidates_to_show[x][0]}_{photos_to_show[0][0]}'
+                    else:
+                        att = None
+                    pprint(candidates_to_show)
+                    write_msg(event.user_id, f"Найдено: {len(candidates_to_show)}")
+                    test = write_msg(event.user_id, f"Первый профиль: {candidates_to_show[x]}", attachment=att)
+                    print('возврат' , test)
+                    # write_msg(event.user_id, f"Фото {photos_to_show}")
+                    write_msg(event.user_id, f"Для добавления в избранное нажмите/напишите 'в избранное'")
+                    write_msg(event.user_id, f"Для просмотра следующего профиля нажмите/напишите 'следующий'")
                 # при нажатии на кнопку "в избранное" помечаем флаг favourite
                 elif user_request == "в избранное": # переделать механизм на кнопку
-                    write_msg(event.user_id, "Промаркирован favourite") 
-                    db.mark_favourite(event.user_id, candidate_id=3, favourite=True)
-                elif user_request == "покажи избранное":
+                    db.mark_favourite(event.user_id, candidates_to_show[x][0], favourite=True)
+                    write_msg(event.user_id, "Добавлено в избранное")
+                # при нажатии на кнопку "следующий" помечаем флаг has_seen
+                elif user_request == "следующий": # переделать механизм на кнопку                                      
+                    db.mark_has_seen(event.user_id, candidates_to_show[x][0], has_seen=True)
+                    x += 1 
+                    photos_to_show = db.get_photos(386540043)
+                    if photos_to_show is not None:
+                        att = f'photo{candidates_to_show[x][0]}_{photos_to_show[0][0]}'
+                    else:
+                        att = None
+                    write_msg(event.user_id, f"{candidates_to_show[x]}", attachment=att)
+                    if x == len(candidates_to_show) - 1:
+                        write_msg(event.user_id, "Проcмотрены все страницы, соответствующие критериям поиска")
+                        write_msg(event.user_id, "Вы можете просмотреть список избранных людей")                                          
+                elif user_request == "покажи избранное": # переделать механизм на кнопку
                     write_msg(event.user_id, "Список избранных людей")
                     favourite_list = db.show_favourites(event.user_id)
-                    # тут функция вывода в чат списка избранных людей
-                elif user_request == "пока":
+                    pprint(favourite_list)
+                elif user_request == "пока": # переделать механизм на кнопку
                     write_msg(event.user_id, "Пока!")
                     break
                 else:
