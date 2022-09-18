@@ -55,12 +55,13 @@ class DatingDB:
 
     # добавление записи в таблицу photo
     def add_photo(self, candidate_id, photo_list):
-        for photo_id in photo_list:
-            self.cur.execute("""
-            INSERT INTO photo(candidate_id, id) VALUES (%s, %s); 
-            """, (candidate_id, photo_id))              
-        self.conn.commit()        
-        return 
+        if photo_list is not None:
+            for photo_link in photo_list:
+                self.cur.execute("""
+                INSERT INTO photo(photo_link, candidate_id) VALUES (%s, %s); 
+                """, (photo_link, candidate_id))              
+            self.conn.commit()        
+            return 
 
     # добавление записи в таблицу client_candidate
     def add_user_candidate(self, user_id, candidate_id, favourite=False, has_seen=False):
@@ -88,17 +89,20 @@ class DatingDB:
         JOIN client_candidate clc ON c.id = clc.candidate_id
         WHERE clc.client_id = %s;          
         """, (user_id,))
-        return self.cur.fetchall() 
+        return self.cur.fetchall()        
     
     # получение списка кандидатов для отображения пользователю
     def get_photos(self, candidate_id):
         self.cur.execute("""
-        SELECT * FROM photo
+        SELECT photo_link FROM photo
         WHERE candidate_id = %s;          
         """, (candidate_id,))
-        info = self.cur.fetchall()
-        if len(info) > 0:
-            return info
+        photo_temp = self.cur.fetchall()        
+        if len(photo_temp) > 0:
+            photo_str = ''
+            for el in photo_temp:
+                photo_str += el[0] + ','
+            return photo_str
         else:
             return None
 
@@ -124,7 +128,8 @@ class DatingDB:
         SELECT c.id, c.first_name, c.last_name, c.profile_link FROM client_candidate clc
         JOIN candidate c ON clc.candidate_id = c.id
         WHERE clc.favourite is True AND clc.client_id=%s;
-        """, (user_id,))     
+        """, (user_id,))
+        return self.cur.fetchall()
                 
     def disconnect_db(self):
         self.cur.close()

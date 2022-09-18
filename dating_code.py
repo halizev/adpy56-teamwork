@@ -1,7 +1,5 @@
 import requests
 from datetime import datetime, date
-from pprint import pprint
-
 
 
 def get_user_info(user_id, token_group):
@@ -28,7 +26,6 @@ def get_user_info(user_id, token_group):
 
 def search_user_candidates(token_user, id, bdate, sex, city_id):
     url = f'https://api.vk.com/method/users.search'
-    # user_info = db.get_user_info(user_id)
 
     user_sex = 0
     if sex == 1:
@@ -50,7 +47,7 @@ def search_user_candidates(token_user, id, bdate, sex, city_id):
               'sex': user_sex,
               'age': user_age,
               'city': city_id,
-              'fields': 'is_closed, id, first_name, last_name, city, bdate',
+              'fields': 'is_closed, id, first_name, last_name, city, bdate, has_photo',
               'status': '1' or '6',
               'has_photo': '1',
               'count': 100}
@@ -61,14 +58,13 @@ def search_user_candidates(token_user, id, bdate, sex, city_id):
     if response.get('response') != None:
         candidates_info = response['response']['items']
         for person_dict in candidates_info:
-            if (person_dict['is_closed'] == False) and (person_dict.get('city') != None) and (person_dict['city']['id'] == city_id):
+            if (person_dict['is_closed'] == False) and (person_dict.get('city') != None) and (person_dict['city']['id'] == city_id) and (person_dict['has_photo'] == 1):
                 candidate_first_name = person_dict['first_name']
                 candidate_last_name = person_dict['last_name']
                 candidate_id = str(person_dict['id'])
                 candidate_link = 'vk.com/id' + str(person_dict['id'])
                 person = {'id': candidate_id, 'first_name': candidate_first_name, 'last_name': candidate_last_name, 'profile': candidate_link}
-                candidates.append(person)
-                # pprint(person_dict)
+                candidates.append(person)                
         return candidates    
     else:
         print('Ошибка обращения к API')
@@ -83,11 +79,9 @@ def get_candidate_photos(candidate_id, token_user):
               'count': 10,
               'extended': 1}
 
-    photos_list = list()
-    # try:
+    photos_list = list()    
     repl = requests.get(url, params=params)
     response = repl.json()
-
     if response.get('response') is not None:
 
         for photo in response['response']['items']:
@@ -97,12 +91,6 @@ def get_candidate_photos(candidate_id, token_user):
             photo_likes = photo['likes']['count']
             photos_list.append({'photo_id': photo_id, 'photo_owner_id': photo_owner_id, 'photo_likes': photo_likes})
         photo_list_sorted = sorted(photos_list, key=lambda i: i['photo_likes'], reverse=True)
-        
-        # photos_data = [el['photo_owner_id'] + '_' + ['photo_id'] for el in photo_list_sorted[0:3]]
-        for el in photo_list_sorted[0:3]:
-            photos_data = f"{el['photo_owner_id']}_{el['photo_id']}"
+        photos_data = [f"photo{photo['photo_owner_id']}_{photo['photo_id']}" for photo in photo_list_sorted[0:3]]
 
-        return {'id': photo_id, 'candidate_id': candidate_id, 'list_photo_ids': photos_data}
-    # except KeyError:
-    #     print('get_candidate_photos. Ошибка обращения к API')
-
+        return {'candidate_id': candidate_id, 'photo_links': photos_data}
