@@ -12,12 +12,12 @@ def generate_keyboard(kb_type):
         gen_kb['buttons'].append(buttons)
     elif kb_type == 'Начать':
         buttons = []
-        but_dict = {'action': {'type': 'text', 'label': 'Поиск'}, 'color': 'primary'}
+        but_dict = {'action': {'type': 'text', 'label': 'Поиск'}, 'color': 'positive'}
         buttons.append(but_dict)
         gen_kb['buttons'].append(buttons)
     elif kb_type == 'Поиск':
         buttons = []
-        but_dict = {'action': {'type': 'text', 'label': 'В избранное'}, 'color': 'secondary'}
+        but_dict = {'action': {'type': 'text', 'label': 'В избранное'}, 'color': 'positive'}
         buttons.append(but_dict)
         but_dict = {'action': {'type': 'text', 'label': 'Следующий'}, 'color': 'secondary'}
         buttons.append(but_dict)
@@ -26,7 +26,7 @@ def generate_keyboard(kb_type):
         gen_kb['buttons'].append(buttons)
     elif kb_type == 'В избранное':
         buttons = []
-        but_dict = {'action': {'type': 'text', 'label': 'В избранное'}, 'color': 'secondary'}
+        but_dict = {'action': {'type': 'text', 'label': 'В избранное'}, 'color': 'positive'}
         buttons.append(but_dict)
         but_dict = {'action': {'type': 'text', 'label': 'Следующий'}, 'color': 'secondary'}
         buttons.append(but_dict)        
@@ -37,7 +37,7 @@ def generate_keyboard(kb_type):
         gen_kb['buttons'].append(buttons)
     elif kb_type == 'Показать избранное':
         buttons = []        
-        but_dict = {'action': {'type': 'text', 'label': 'Поиск'}, 'color': 'primary'}
+        but_dict = {'action': {'type': 'text', 'label': 'Поиск'}, 'color': 'positive'}
         buttons.append(but_dict)
         but_dict = {'action': {'type': 'text', 'label': 'Показать избранное'}, 'color': 'secondary'}
         buttons.append(but_dict)
@@ -47,3 +47,9 @@ def generate_keyboard(kb_type):
 
     jstr = json.dumps(gen_kb, indent=4)
     return jstr
+
+def in_favourite(f_check=bool) -> str:
+    if f_check == False:
+        return f'Нет'
+    else:
+        return f'Да'
