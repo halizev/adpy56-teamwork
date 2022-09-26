@@ -36,6 +36,7 @@ def search_user_candidates(token_user, id, bdate, sex, city_id):
     bday = datetime.strptime(bdate, "%d.%m.%Y")
     birthday = bday.date() 
     today = date.today()
+
     user_age = today.year - birthday.year
     if (today.month < birthday.month or
             (today.month == birthday.month and today.day < birthday.day)):
@@ -63,12 +64,12 @@ def search_user_candidates(token_user, id, bdate, sex, city_id):
                 candidate_last_name = person_dict['last_name']
                 candidate_id = str(person_dict['id'])
                 candidate_link = 'vk.com/id' + str(person_dict['id'])
+
                 person = {'id': candidate_id, 'first_name': candidate_first_name, 'last_name': candidate_last_name, 'profile': candidate_link}
                 candidates.append(person)                
         return candidates    
     else:
         print('Ошибка обращения к API')
-
 
 def get_candidate_photos(candidate_id, token_user):
     url = f'https://api.vk.com/method/photos.get'

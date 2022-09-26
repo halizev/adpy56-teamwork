@@ -50,7 +50,7 @@ class DatingDB:
         self.cur.execute("""
         INSERT INTO candidate(id, first_name, last_name, profile_link) VALUES (%s, %s, %s, %s);
         """, (id, first_name, last_name, profile))        
-        self.conn.commit()                        
+        self.conn.commit()
         return 
 
     # добавление записи в таблицу photo

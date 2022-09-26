@@ -7,6 +7,7 @@ from dating_db import DatingDB
 from utils import generate_keyboard, in_favourite
 
 
+
 if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read("settings.ini")
@@ -23,12 +24,13 @@ if __name__ == '__main__':
 
     def write_msg(user_id, message, attachment=None, keyboard=None):
        return vk.method('messages.send', {'user_id': user_id, 'message': message, 'attachment': attachment, 'keyboard': keyboard, 'random_id': randrange(10 ** 7),})
-    
+
     for event in longpoll.listen():
         
         if event.type == VkEventType.MESSAGE_NEW:
             if event.to_me:
                 user_request = str(event.text.lower())
+
                 if user_request == "начать":
                     temp_kb = generate_keyboard('Начать')
                     write_msg(event.user_id, 'Вас приветствует бот знакомств! Для поиска людей нажмите "поиск"', keyboard=temp_kb)
@@ -40,6 +42,7 @@ if __name__ == '__main__':
                     write_msg(event.user_id, f"Начинаю поиск людей противоположного пола для знакомства в вашем городе.")
                     user_info = db.get_user_info(event.user_id)
                     candidates_to_db = search_user_candidates(token_user, user_info['id'], user_info['bdate'], user_info['sex'], user_info['city_id'])
+
                     # если в базе нет кадидата, то создаём запись
                     for candidate in candidates_to_db:
                         if not db.check_candidate_id(candidate['id']):
