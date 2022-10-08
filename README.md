@@ -9,7 +9,8 @@
 
 ## Клонирование репозитория. ##  
 
-Введите в консоли:
+Введите в консоли:  
+
 		git clone https://github.com/halizev/adpy56-teamwork.git  
 		pip install -r requirements.txt
 
@@ -18,14 +19,14 @@
 1.   Создать базу данных PostgreSQL. Создать таблицы, используя скрипт db_create.sql
 2.   Заполнить файл settings.ini при помощи любого текстового редактора:  
 ```
-		[db_info]  
-		database=  
-		user=  
-		password=  
+[db_info]  
+database=  
+user=  
+password=  
 		
-		[vk_info]  
-		token_group=  
-		token_user=  
+[vk_info]  
+token_group=  
+token_user=  
 ```
 * 	В поле database ввести имя бд, созданной в пункте 1;
 *	В поля user и password ввести соответственно имя и пароль для PostgreSQL
@@ -34,7 +35,8 @@
 
 ## Запуск ##  
 
-Для запуска программы введите в консоли:
+Для запуска программы введите в консоли:  
+
 		bot_vk.py  
 		
 Для начала работы программы в чате группы ВКонтакте нажмите "Начать"  
